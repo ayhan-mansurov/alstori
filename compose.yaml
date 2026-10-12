@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: alstori_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - alstori-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alstori_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - alstori-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: alstori_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: alstori_db
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: alstori_user
+      MYSQL_PASSWORD: alstori_password
+    ports:
+      - "33069:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - alstori-net
+
+volumes:
+  mysql_data:
+
+networks:
+  alstori-net:
+    driver: bridge
